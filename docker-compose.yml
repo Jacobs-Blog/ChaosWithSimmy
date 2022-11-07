@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  api:
+    image: ${REGISTRY}/api:${TAG}
+    container_name: products.api
+    build:
+      context: ./src/Api/
+      dockerfile: Dockerfile
+    ports:
+      - 6000:6000
+    environment:
+      ASPNETCORE_URLS: http://+:6000
+      DatabaseSettings:Username: &db-user postgres
+      DatabaseSettings:Password: &db-password postgres
+      DatabaseSettings:Host: products-db
+      DatabaseSettings:Database: &db-name ProductsDb
+    depends_on:
+      - database
+    restart: always
+    
+  database:
+    image: library/postgres:11
+    container_name: products.db
+    environment:
+      TZ: Europe/Amsterdam
+      POSTGRES_USER: *db-user
+      POSTGRES_PASSWORD: *db-password
+      POSTGRES_DB: *db-name
+    ports:
+      - 5432:5432
+    volumes:
+      - products_db_data:/var/lib/postgresql/data
+    restart: always
+
+volumes:
+  products_db_data:
+
+    
