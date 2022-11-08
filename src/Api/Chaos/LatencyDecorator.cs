@@ -1,16 +1,27 @@
 using Api.Data;
+using Polly.Contrib.Simmy;
+using Polly.Contrib.Simmy.Latency;
 
 namespace Api.Chaos;
 
 public class LatencyDecorator : IProductsRepository
 {
-    public Task<List<Product>> All()
+    private readonly IProductsRepository _inner;
+    private readonly AsyncInjectLatencyPolicy _latencyPolicy;
+
+    public LatencyDecorator(IProductsRepository inner, LatencySettings latencySettings)
     {
-        throw new NotImplementedException();
+        _inner = inner;
+        _latencyPolicy = MonkeyPolicy
+            .InjectLatencyAsync(with =>
+                with.Latency(TimeSpan.FromMilliseconds(latencySettings.MsLatency))
+                    .InjectionRate(latencySettings.InjectionRate)
+                    .Enabled());
     }
 
-    public Task<Product?> ById(int id)
-    {
-        throw new NotImplementedException();
-    }
+    public async Task<List<Product>> All() => 
+        await _latencyPolicy.ExecuteAsync(async () => await _inner.All());
+
+    public async Task<Product?> ById(int id) =>
+        await _latencyPolicy.ExecuteAsync(async () => await _inner.ById(id));
 }
