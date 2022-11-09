@@ -8,13 +8,23 @@ services:
       context: ./src/Api/
       dockerfile: Dockerfile
     ports:
-      - 6000:6000
+      - 3000:3000
     environment:
-      ASPNETCORE_URLS: http://+:6000
+      ASPNETCORE_URLS: http://+:3000
       DatabaseSettings:Username: &db-user postgres
       DatabaseSettings:Password: &db-password postgres
       DatabaseSettings:Host: products-db
       DatabaseSettings:Database: &db-name ProductsDb
+      ConnectionStrings:ProductsDatabase: "User ID=postgres;Password=postgres;Host=products.db;Port=5432;Database=ProductsDb;Pooling=true;"
+      ChaosSettings:ExceptionSettings:Enabled: true
+      ChaosSettings:ExceptionSettings:InjectionRate: 0.25
+      ChaosSettings:LatencySettings:Enabled: false
+      ChaosSettings:LatencySettings:InjectionRate: 0.5
+      ChaosSettings:LatencySettings:MsLatency: 500
+      ChaosSettings:ResultSettings:Enabled: false
+      ChaosSettings:ResultSettings:InjectionRate: 0.5
+      ChaosSettings:BehaviorSettings:Enabled: false 
+      ChaosSettings:BehaviorSettings:InjectionRate: 0.5
     depends_on:
       - database
     restart: always

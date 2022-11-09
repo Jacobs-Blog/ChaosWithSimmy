@@ -66,6 +66,9 @@ public static class Routes
             await dbContext.SaveChangesAsync();
             return Results.Accepted();
         });
+        
+        app.MapGet("/settings", ([FromServices]IOptions<ChaosSettings> chaosSettings) => Results.Json(chaosSettings));
+        
         return app;
     }
 }
