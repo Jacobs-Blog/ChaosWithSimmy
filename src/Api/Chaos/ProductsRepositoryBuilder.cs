@@ -12,6 +12,7 @@ public class ProductsRepositoryBuilder
     private bool _latency;
     private bool _result;
     private bool _behavior;
+    private bool _randomPolicies;
 
     public ProductsRepositoryBuilder(IProductsRepository productsRepository, IOptions<ChaosSettings> chaosSettings, ProductsDbContext productsDbContext)
     {
@@ -44,6 +45,12 @@ public class ProductsRepositoryBuilder
         return this;
     }
 
+    public ProductsRepositoryBuilder WithRandomPolicies(bool isEnabled)
+    {
+        _randomPolicies = isEnabled;
+        return this;
+    }
+
     public IProductsRepository Build()
     {
         IProductsRepository build = null;
@@ -64,6 +71,9 @@ public class ProductsRepositoryBuilder
             build = build == null
                 ? new BehaviorDecorator(_productsRepository, _chaosSettings.BehaviorSettings, _productsDbContext)
                 : new BehaviorDecorator(build, _chaosSettings.BehaviorSettings, _productsDbContext);
+
+        if (_randomPolicies)
+            build = new RandomPolicyDecorator(_productsRepository, _chaosSettings);
 
         return build ?? _productsRepository;
     }

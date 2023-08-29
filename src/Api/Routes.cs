@@ -33,6 +33,28 @@ public static class Routes
                 ProductsList = allProducts
             });
         });
+        
+        app.MapGet("/randomchaos/products/all", async (
+            [FromServices] ProductsRepositoryBuilder productsRepositoryBuilder,
+            [FromServices] IOptions<ChaosSettings> chaosSettings) =>
+        {
+            Stopwatch stopwatch = new();
+            stopwatch.Start();
+
+            var products = productsRepositoryBuilder
+                .WithRandomPolicies(true)
+                .Build();
+
+            var allProducts = await products.All();
+            stopwatch.Stop();
+
+            return Results.Json(new ProductsResult
+            {
+                RequestDuration = stopwatch.ElapsedMilliseconds,
+                ProductsList = allProducts
+            });
+        });
+        
 
         app.MapGet("/products/{productId}", async (
             [FromServices] ProductsRepositoryBuilder productsRepositoryBuilder,
@@ -44,6 +66,27 @@ public static class Routes
                 .WithLatency(chaosSettings.Value.LatencySettings.Enabled)
                 .WithResult(chaosSettings.Value.ResultSettings.Enabled)
                 .WithBehavior(chaosSettings.Value.BehaviorSettings.Enabled)
+                .Build();
+
+            Stopwatch stopwatch = new();
+            stopwatch.Start();
+            var product = await products.ById(productId);
+            stopwatch.Stop();
+
+            return Results.Json(new ProductsResult
+            {
+                RequestDuration = stopwatch.ElapsedMilliseconds,
+                ProductsList = new List<Product> {product}
+            });
+        });
+        
+        app.MapGet("/randomchaos/products/{productId}", async (
+            [FromServices] ProductsRepositoryBuilder productsRepositoryBuilder,
+            [FromServices] IOptions<ChaosSettings> chaosSettings,
+            int productId) =>
+        {
+            var products = productsRepositoryBuilder
+                .WithRandomPolicies(true)
                 .Build();
 
             Stopwatch stopwatch = new();
